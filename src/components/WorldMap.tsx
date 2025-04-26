@@ -1,50 +1,26 @@
-import { MapContainer, GeoJSON } from "react-leaflet";
+import { MapContainer, TileLayer, GeoJSON } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import wineRegions from "../data/wine-regions.json";
-import rivers from "../data/rivers.json";  // Assuming you have rivers data
-// import cities from "../data/cities.json";  // No markers for cities
+import franceRegions from "../data/france-regions.json";
+import rivers from "../data/france-rivers.json";
+import { useRef } from "react";
+
+const randomColors = [
+  "#e6194b", "#3cb44b", "#ffe119", "#4363d8",
+  "#f58231", "#911eb4", "#46f0f0", "#f032e6",
+  "#bcf60c", "#fabebe", "#008080", "#e6beff", "#9a6324"
+];
+
+const getRandomColor = () => randomColors[Math.floor(Math.random() * randomColors.length)];
 
 export default function WorldMap() {
-  // Random colors array
-  const randomColors = ["#ff7f0e", "#2ca02c", "#1f77b4", "#d62728", "#9467bd", "#17becf", "#bcbd22"];
+  const geoJsonRef = useRef<any>(null);
 
-  // Function to get random color
-  const getRandomColor = () => {
-    return randomColors[Math.floor(Math.random() * randomColors.length)];
-  };
-
-  // Region style function
-  const regionStyle = (feature: any) => ({
-    fillColor: getRandomColor(),
-    weight: 1,
-    opacity: 1,
-    color: "#fff",
-    dashArray: "3",
-    fillOpacity: 0.7,
-  });
-
-  // River style
-  const riverStyle = {
-    color: "#A3CBE3",
-    weight: 2,
-  };
-
-  // What happens for each region
   const onEachRegion = (feature: any, layer: any) => {
-    // Log the feature properties to ensure the data is correct
-    console.log("Feature Properties:", feature.properties);
+    const regionName = feature.properties.nom;  
 
-    // Ensure the name is present
-    if (feature.properties && feature.properties.name) {
-      console.log(`Binding Popup for ${feature.properties.name}`);
-      layer.bindPopup(`<b>${feature.properties.nom}</b><br/>Wine region info here`);
-    }
+    layer.bindPopup(`<b>${regionName}</b>`);
 
     layer.on({
-      click: (e: any) => {
-        console.log("Clicked on region", feature.properties.nom);  // Check if click is detected
-        e.target.openPopup(); // Open the popup
-      },
       mouseover: (e: any) => {
         e.target.setStyle({
           weight: 2,
@@ -53,15 +29,44 @@ export default function WorldMap() {
         });
       },
       mouseout: (e: any) => {
-        e.target.setStyle(regionStyle(feature)); // Reset to normal style
+        geoJsonRef.current?.resetStyle(e.target);
+      },
+      click: () => {
+        layer.openPopup();
+        console.log('Clicked region:', regionName);
       },
     });
   };
 
+  const regionStyle = (feature: any) => ({
+    fillColor: getRandomColor(),
+    weight: 1,
+    opacity: 1,
+    color: "white",
+    fillOpacity: 0.6,
+  });
+
   return (
-    <MapContainer center={[46.6034, 1.8883]} zoom={6} style={{ height: "100vh", width: "100%" }}>
-      <GeoJSON data={wineRegions as any} style={regionStyle} onEachFeature={onEachRegion} />
-      <GeoJSON data={rivers as any} style={riverStyle} />
+    <MapContainer center={[46.8, 2.5]} zoom={6} style={{ height: "100vh", width: "100%" }}>
+      {/* 🔥 Better detailed base map */}
+      <TileLayer
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        url="https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png"
+      />
+
+      {/* 🗺️ Regions Layer */}
+      <GeoJSON
+        data={franceRegions as any}
+        style={regionStyle}
+        onEachFeature={onEachRegion}
+        ref={geoJsonRef}
+      />
+
+      {/* 🌊 Rivers Layer */}
+      <GeoJSON
+        data={rivers as any}
+        style={{ color: "#0077be", weight: 2 }}
+      />
     </MapContainer>
   );
 }
