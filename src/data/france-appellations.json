@@ -1,0 +1,25 @@
+{
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "properties": {
+          "name": "Bordeaux",
+          "id": "bordeaux"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [-0.9, 44.8],
+              [-0.5, 44.8],
+              [-0.5, 45.1],
+              [-0.9, 45.1],
+              [-0.9, 44.8]
+            ]
+          ]
+        }
+      }
+    ]
+  }
+  
